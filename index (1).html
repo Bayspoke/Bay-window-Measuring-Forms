@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bayspoke — Bay Window Measure-Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f8fa;--surface:#fff;--surface2:#f0f2f7;--border:#dde1ea;--border2:#c8cdd8;--text:#1a1f2e;--text2:#4b5368;--text3:#8891a8;--brand:#1a3a2a;--brand-mid:#2d6248;--brand-light:#e8f5ee;--brand-accent:#3a9e6a;--green:#16a34a;--green-light:#dcfce7;--amber:#d97706;--amber-light:#fef3c7;--red:#dc2626;--red-light:#fee2e2;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.page{max-width:680px;margin:0 auto;padding:0 16px 60px;}
+.header{background:var(--brand);color:#fff;text-align:center;padding:28px 20px 24px;margin:0 -16px 24px;border-radius:0 0 16px 16px;}
+.header .logo{font-size:1.9rem;font-weight:700;letter-spacing:-1px;margin-bottom:4px;}
+.header .logo span{color:var(--brand-accent);}
+.header p{font-size:.85rem;opacity:.8;line-height:1.5;max-width:420px;margin:0 auto;}
+.header .sh{margin-top:10px;font-size:.72rem;opacity:.55;font-weight:500;letter-spacing:.4px;text-transform:uppercase;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--brand-mid);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title::before{content:'';display:block;width:3px;height:14px;background:var(--brand-accent);border-radius:2px;flex-shrink:0;}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--brand);color:#fff;border-radius:50%;font-size:.7rem;font-weight:700;flex-shrink:0;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:460px){.fgrid{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.flabel{font-size:.74rem;font-weight:600;color:var(--text2);}
+.finput{padding:9px 12px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85rem;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);outline:none;}
+.finput:focus{border-color:var(--brand-accent);}
+.notes{width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:8px;font-size:.85rem;font-family:'Inter',sans-serif;color:var(--text);background:var(--surface);resize:vertical;min-height:70px;outline:none;}
+.tip{background:var(--brand-light);border:1px solid #b2d8c4;border-radius:8px;padding:11px 13px;font-size:.8rem;color:var(--text2);line-height:1.6;margin-bottom:12px;}
+.tip strong{color:var(--brand-mid);}
+.warn-tip{background:var(--amber-light);border:1px solid var(--amber);border-radius:8px;padding:11px 13px;font-size:.8rem;color:#92400e;line-height:1.6;margin-bottom:10px;}
+.il{font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;}
+.req-star{color:var(--red);margin-left:2px;}
+.opt-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+.opt{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border2);font-size:.82rem;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;font-family:'Inter',sans-serif;}
+.opt:hover{border-color:var(--brand-accent);color:var(--brand-mid);}
+.opt.sel{background:var(--brand);border-color:var(--brand);color:#fff;}
+.colour-opt{display:flex;align-items:center;gap:8px;}
+.colour-swatch{width:16px;height:16px;border-radius:50%;border:2px solid rgba(0,0,0,.15);flex-shrink:0;}
+.cond{display:none;background:var(--brand-light);border:1px solid var(--brand-accent);border-radius:8px;padding:14px 16px;margin-top:8px;}
+.cond.show{display:block;}
+.cond-warn{display:none;background:var(--amber-light);border:1px solid var(--amber);border-radius:8px;padding:14px 16px;margin-top:8px;}
+.cond-warn.show{display:block;}
+hr.div{border:none;border-top:1px dashed var(--border);margin:14px 0;}
+.unit-row{display:flex;align-items:center;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+.unit-row span{font-size:.78rem;color:var(--text2);font-weight:500;}
+.ubtn{padding:4px 13px;border-radius:20px;border:1.5px solid var(--border2);font-size:.75rem;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;font-family:'Inter',sans-serif;}
+.ubtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+.schematic-wrap{background:#1a1f2e;border-radius:10px;padding:16px;margin-bottom:14px;}
+.schematic-wrap svg{display:block;width:100%;height:auto;}
+.mrow{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;margin-bottom:7px;transition:border-color .2s;}
+.mrow.ok{border-color:var(--green);}
+.mrow.warn{border-color:var(--amber);}
+.mrow.err{border-color:var(--red);}
+.mbadge{height:28px;border-radius:6px;color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;white-space:nowrap;}
+.minfo{font-size:.83rem;font-weight:500;color:var(--text);}
+.minfo small{display:block;font-size:.7rem;color:var(--text3);font-weight:400;margin-top:1px;}
+.minput-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.minput-inner{display:flex;align-items:center;gap:4px;}
+.minput{width:84px;padding:7px 10px;border:1.5px solid var(--border2);border-radius:6px;font-size:.88rem;font-family:'JetBrains Mono',monospace;color:var(--text);background:var(--surface);text-align:right;outline:none;transition:border-color .15s;}
+.minput:focus{border-color:var(--brand-accent);}
+.munit{font-size:.75rem;color:var(--text3);min-width:24px;}
+.mhint{font-size:.64rem;font-weight:600;min-height:10px;text-align:right;}
+.mhint.ok{color:var(--green);}
+.mhint.warn{color:var(--amber);}
+.mhint.err{color:var(--red);}
+.sense{border-radius:8px;padding:12px 14px;margin-top:4px;font-size:.8rem;line-height:1.5;}
+.sense.ok{background:var(--green-light);border:1px solid var(--green);color:var(--green);}
+.sense.warn{background:var(--amber-light);border:1px solid var(--amber);color:var(--amber);}
+.sense.err{background:var(--red-light);border:1px solid var(--red);color:var(--red);}
+.sense.idle{background:var(--surface2);border:1px solid var(--border);color:var(--text3);}
+.sense-title{font-weight:700;margin-bottom:7px;}
+.check-list{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.check-list li{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:6px;font-size:.78rem;}
+.check-list li.ok{background:rgba(22,163,74,.1);color:var(--green);}
+.check-list li.warn{background:rgba(217,119,6,.1);color:var(--amber);}
+.check-list li.err{background:rgba(220,38,38,.1);color:var(--red);}
+.check-list li .ci{flex-shrink:0;font-weight:700;width:14px;}
+.check-detail{font-size:.69rem;opacity:.85;margin-top:1px;line-height:1.4;}
+.photo-zone{border:2px dashed var(--border2);border-radius:10px;padding:18px;text-align:center;cursor:pointer;background:var(--surface2);}
+.photo-zone:hover{border-color:var(--brand-accent);background:var(--brand-light);}
+.photo-zone.required-missing{border-color:var(--red);background:var(--red-light);}
+.photo-zone p{font-size:.8rem;color:var(--text3);margin-top:5px;}
+.thumbs{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.thumb{position:relative;width:68px;height:68px;border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+.thumb img{width:100%;height:100%;object-fit:cover;}
+.thumb .del{position:absolute;top:2px;right:2px;width:17px;height:17px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#photoInput{display:none;}
+.photo-req{font-size:.75rem;color:var(--red);font-weight:600;margin-top:6px;display:none;}
+.submit-btn{width:100%;padding:16px;background:var(--brand);color:#fff;border:none;border-radius:10px;font-size:1.05rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;}
+.submit-btn:hover{background:var(--brand-mid);}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:16px;padding:28px 24px 32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;text-align:center;}
+.modal-icon{font-size:2.5rem;margin-bottom:12px;}
+.modal h2{font-size:1.1rem;font-weight:700;margin-bottom:6px;}
+.modal p{font-size:.84rem;color:var(--text2);line-height:1.6;margin-bottom:18px;}
+.modal-btns{display:flex;flex-direction:column;gap:9px;}
+.mbtn{padding:13px;border-radius:9px;border:none;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;width:100%;}
+.mbtn-wa{background:#25d366;color:#fff;}
+.mbtn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.mbtn-back{background:transparent;color:var(--text3);border:none;font-weight:400;font-size:.82rem;margin-top:4px;cursor:pointer;font-family:'Inter',sans-serif;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--brand-accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.flash{font-size:.75rem;color:var(--green);min-height:18px;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="header">
+  <div class="logo">Bay<span>spoke</span></div>
+  <p>3-Section Bay Window &middot; Measure-Up Form</p>
+  <div class="sh">Angled or Box Bay &middot; Works on any phone &middot; No app needed</div>
+</div>
+
+<!-- STEP 1: Details -->
+<div class="card">
+  <div class="card-title"><span class="step-num">1</span> Your Details</div>
+  <div class="fgrid">
+    <div class="fg"><label class="flabel">Name <span class="req-star">*</span></label><input class="finput" id="cName" type="text" placeholder="Jane Smith"></div>
+    <div class="fg"><label class="flabel">Phone <span class="req-star">*</span></label><input class="finput" id="cPhone" type="tel" placeholder="07700 900000"></div>
+    <div class="fg"><label class="flabel">Email</label><input class="finput" id="cEmail" type="email" placeholder="jane@email.com"></div>
+    <div class="fg"><label class="flabel">Town / area</label><input class="finput" id="cTown" type="text" placeholder="e.g. Cork City"></div>
+  </div>
+  <div style="margin-top:10px"><div class="fg"><label class="flabel">Room / window</label><input class="finput" id="cRoom" type="text" placeholder="e.g. Front living room bay"></div></div>
+</div>
+
+<!-- STEP 2: Bay Type -->
+<div class="card">
+  <div class="card-title"><span class="step-num">2</span> Bay Type</div>
+  <div class="opt-row" id="bayTypeRow">
+    <button class="opt sel" onclick="setBayType('angled',this)">Angled Bay<small style="display:block;font-size:.65rem;font-weight:400">Diagonal side sections</small></button>
+    <button class="opt" onclick="setBayType('box',this)">Box Bay<small style="display:block;font-size:.65rem;font-weight:400">Square corners</small></button>
+  </div>
+</div>
+
+<!-- STEP 3: Measurements -->
+<div class="card">
+  <div class="card-title"><span class="step-num">3</span> Measurements</div>
+  <div class="unit-row">
+    <span>Units:</span>
+    <button class="ubtn on" onclick="setUnit('mm')">mm</button>
+    <button class="ubtn" onclick="setUnit('cm')">cm</button>
+    <button class="ubtn" onclick="setUnit('inches')">inches</button>
+  </div>
+  <div class="tip"><strong>Corner labels:</strong> A = left wall &middot; B = left inner corner &middot; C = right inner corner &middot; D = right wall. Tape flat against the frame for each measurement.</div>
+  <div class="schematic-wrap"><svg id="schematic" viewBox="0 0 500 240" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div id="measGrid"></div>
+  <div class="sense idle" id="sensePanel"><div class="sense-title">&#x2139;&#xFE0F; Sense check</div>Fill in your measurements &mdash; errors will appear here as you go.</div>
+</div>
+
+<!-- STEP 4: Mounting -->
+<div class="card">
+  <div class="card-title"><span class="step-num">4</span> Mounting</div>
+  <span class="il">Where will the pole be fixed? <span class="req-star">*</span></span>
+  <div class="opt-row" id="mountRow">
+    <button class="opt" onclick="setMount('wall',this)">Wall mounted<small style="display:block;font-size:.65rem;font-weight:400">Brackets on the wall face</small></button>
+    <button class="opt" onclick="setMount('ceiling',this)">Bay ceiling mounted<small style="display:block;font-size:.65rem;font-weight:400">Fixed inside the bay ceiling</small></button>
+  </div>
+  <div class="cond-warn" id="ceilBlock">
+    <div style="font-weight:700;color:#92400e;margin-bottom:10px;font-size:.85rem">&#x1F4D0; Ceiling mount &mdash; extra measurements needed</div>
+    <div class="tip" style="margin-bottom:10px"><strong>Note:</strong> Pole line follows the wall below the window recess &mdash; measure that wall face, not the ceiling.</div>
+    <span class="il">Wall below window &mdash; width at pole line (mm) <span class="req-star">*</span></span>
+    <input class="finput" id="ceilWallWidth" type="number" min="0" placeholder="Width of wall below window" style="margin-bottom:10px;width:100%">
+    <span class="il">Depth above window for bracket clearance (mm) <span class="req-star">*</span></span>
+    <div class="tip" style="margin-bottom:6px">Minimum <strong>50mm</strong> needed for brackets to fit.</div>
+    <input class="finput" id="ceilDepth" type="number" min="0" placeholder="e.g. 80" style="margin-bottom:4px;width:100%" oninput="checkCeilDepth()">
+    <div id="ceilDepthWarn" style="font-size:.74rem;font-weight:600;min-height:16px;margin-bottom:8px"></div>
+    <span class="il">Wall construction <span class="req-star">*</span></span>
+    <div class="opt-row" id="wallTypeRow">
+      <button class="opt" onclick="selOpt(this,'wallType','block')">Block / brick</button>
+      <button class="opt" onclick="selOpt(this,'wallType','plasterboard')">Plasterboard</button>
+      <button class="opt" onclick="selOpt(this,'wallType','insulated')">Insulated / dot &amp; dab</button>
+      <button class="opt" onclick="selOpt(this,'wallType','unknown')">Unknown</button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 5: Pole Details -->
+<div class="card">
+  <div class="card-title"><span class="step-num">5</span> Pole Details</div>
+  <span class="il">Extends onto front wall past the bay? <span class="req-star">*</span></span>
+  <div class="tip" style="margin-bottom:8px"><strong>Stack-back:</strong> extending the pole onto the wall lets curtains pull fully clear of the glass.</div>
+  <div class="opt-row" id="extRow">
+    <button class="opt" onclick="selOpt(this,'ext','yes')">Yes &mdash; onto front wall</button>
+    <button class="opt" onclick="selOpt(this,'ext','no')">No &mdash; stays within bay</button>
+  </div>
+  <div class="cond" id="extBlock">
+    <span class="il" style="color:var(--brand-mid)">Available wall space each side (mm)</span>
+    <div class="fgrid" style="margin-bottom:8px">
+      <div class="fg"><label class="flabel">Left side</label><input class="finput" id="inLE" type="number" min="0" placeholder="e.g. 200"></div>
+      <div class="fg"><label class="flabel">Right side</label><input class="finput" id="inRE" type="number" min="0" placeholder="e.g. 200"></div>
+    </div>
+    <span class="il" style="color:var(--brand-mid)">Restrictions / obstacles</span>
+    <textarea class="notes" id="wallNotes" placeholder="e.g. radiator on left, door frame on right, coving&hellip;" style="min-height:50px"></textarea>
+  </div>
+  <hr class="div">
+  <span class="il">Pole colour <span class="req-star">*</span></span>
+  <div class="opt-row" id="colourRow">
+    <button class="opt colour-opt" onclick="selOpt(this,'colour','black')"><span class="colour-swatch" style="background:#222"></span>Matt Black</button>
+    <button class="opt colour-opt" onclick="selOpt(this,'colour','brass')"><span class="colour-swatch" style="background:#b5912a"></span>Brass / Gold</button>
+    <button class="opt colour-opt" onclick="selOpt(this,'colour','chrome')"><span class="colour-swatch" style="background:#cdd4da"></span>Chrome / Silver</button>
+    <button class="opt colour-opt" onclick="selOpt(this,'colour','white')"><span class="colour-swatch" style="background:#e8e8e8;border-color:#ccc"></span>White</button>
+  </div>
+  <hr class="div">
+  <span class="il">Finial style</span>
+  <div class="opt-row" id="finialRow">
+    <button class="opt" onclick="selOpt(this,'finial','ball')">Ball</button>
+    <button class="opt" onclick="selOpt(this,'finial','spear')">Spear</button>
+    <button class="opt" onclick="selOpt(this,'finial','disc')">Disc / flat</button>
+    <button class="opt" onclick="selOpt(this,'finial','unsure')">Not sure</button>
+  </div>
+  <hr class="div">
+  <span class="il">Hanging method <span class="req-star">*</span></span>
+  <div class="opt-row" id="hangRow">
+    <button class="opt" onclick="selOpt(this,'hang','rings')">Rings</button>
+    <button class="opt" onclick="selOpt(this,'hang','eyelets')">Eyelets</button>
+    <button class="opt" onclick="selOpt(this,'hang','unsure')">Not sure</button>
+  </div>
+  <hr class="div">
+  <span class="il">Corner style</span>
+  <div class="opt-row" id="cornerRow">
+    <button class="opt" onclick="selOpt(this,'corner','standard')">Standard bracket</button>
+    <button class="opt" onclick="selOpt(this,'corner','rounded')">Rounded / curved corner</button>
+    <button class="opt" onclick="selOpt(this,'corner','unsure')">Not sure</button>
+  </div>
+</div>
+
+<!-- STEP 6: Photos -->
+<div class="card">
+  <div class="card-title"><span class="step-num">6</span> Photos <span style="color:var(--red);font-size:.75rem;font-weight:600;margin-left:4px">Required</span></div>
+  <div class="warn-tip">&#x1F4F8; <strong>At least one photo is required.</strong> Photos let us confirm measurements before we build your pole.</div>
+  <div class="tip"><strong>What to photograph:</strong> straight on &middot; left side &middot; right side &middot; top of frame &middot; any obstacles (radiators, coving, door frames)</div>
+  <div class="photo-zone" id="photoZone" onclick="document.getElementById('photoInput').click()">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto;color:var(--text3)"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    <strong style="font-size:.83rem;color:var(--text2)">Tap to add photos</strong>
+    <p>Front &middot; side angles &middot; top of frame &middot; obstacles</p>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" multiple onchange="addPhotos(this)">
+  <div class="photo-req" id="photoReq">&#x26A0;&#xFE0F; Please add at least one photo before submitting.</div>
+  <div class="thumbs" id="thumbs"></div>
+  <div id="photoLabels" style="margin-top:10px"></div>
+</div>
+
+<!-- STEP 7: Notes -->
+<div class="card">
+  <div class="card-title"><span class="step-num">7</span> Anything Else?</div>
+  <textarea class="notes" id="custNotes" placeholder="Coving, existing pole to match, timescales, access issues, curtain fabric&hellip;"></textarea>
+</div>
+
+<button class="submit-btn" onclick="submit()">Send My Measurements to Bayspoke &#x2192;</button>
+</div>
+
+<!-- Success/Error overlay -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div id="sendingState"><div class="spinner"></div><p style="color:var(--text2);font-size:.9rem">Sending your measurements&hellip;</p></div>
+    <div id="successState" style="display:none">
+      <div class="modal-icon">&#x2705;</div>
+      <h2>Measurements sent!</h2>
+      <p>We'll come back to you shortly with your quote.<br>Want to also send via WhatsApp for a faster reply?</p>
+      <div class="modal-btns">
+        <button class="mbtn mbtn-wa" onclick="sendWA()">&#x1F4F1; Also send via WhatsApp</button>
+        <button class="mbtn mbtn-secondary" onclick="copySum()">&#x1F4CB; Copy to clipboard</button>
+      </div>
+      <div class="flash" id="flash"></div>
+    </div>
+    <div id="errorState" style="display:none">
+      <div class="modal-icon">&#x26A0;&#xFE0F;</div>
+      <h2>Couldn't send automatically</h2>
+      <p>Please send your measurements via WhatsApp instead &mdash; tap below.</p>
+      <div class="modal-btns">
+        <button class="mbtn mbtn-wa" onclick="sendWA()">&#x1F4F1; Send via WhatsApp</button>
+        <button class="mbtn mbtn-secondary" onclick="copySum()">&#x1F4CB; Copy to clipboard</button>
+      </div>
+      <div class="flash" id="flash2"></div>
+    </div>
+    <button class="mbtn-back" onclick="document.getElementById('overlay').classList.remove('open')">&larr; Back to edit</button>
+  </div>
+</div>
+
+<script>
+const WEB3FORMS_KEY='638c7c81-f811-4400-8ba2-432833e6e1e1';
+let unit='mm', bayType='angled', photos=[];
+const opts={};
+let summaryCache='';
+
+function getCorners(){
+  const ab=parseFloat(document.getElementById('m_AB')?.value)||0;
+  const bc=parseFloat(document.getElementById('m_BC')?.value)||0;
+  const cd=parseFloat(document.getElementById('m_CD')?.value)||0;
+  const W=parseFloat(document.getElementById('m_AD')?.value)||0;
+  const P=parseFloat(document.getElementById('m_P')?.value)||0;
+  if(W<=0||P<=0)return null;
+  if(bayType==='box')return{A:{x:0,y:0},B:{x:ab||0,y:P},C:{x:W-(cd||0),y:P},D:{x:W,y:0}};
+  const wallRunAB=ab>P?Math.sqrt(ab*ab-P*P):(ab>0?ab*0.7:0);
+  const wallRunCD=cd>P?Math.sqrt(cd*cd-P*P):(cd>0?cd*0.7:0);
+  return{A:{x:0,y:0},B:{x:wallRunAB,y:P},C:{x:W-wallRunCD,y:P},D:{x:W,y:0}};
+}
+function dist2(p1,p2){return Math.sqrt((p1.x-p2.x)**2+(p1.y-p2.y)**2);}
+
+function getMeasDefs(){
+  const isBox=bayType==='box';
+  return[
+    {id:'m_AB',label:'A→B',name:isBox?'Left return':'Left side',hint:'A (left wall) to B (left inner corner)',colour:'#2d6248',required:true},
+    {id:'m_BC',label:'B→C',name:'Front section',hint:'B (left inner) to C (right inner corner)',colour:'#2d6248',required:true},
+    {id:'m_CD',label:'C→D',name:isBox?'Right return':'Right side',hint:'C (right inner) to D (right wall corner)',colour:'#2d6248',required:true},
+    {id:'m_AD',label:'A→D',name:'Opening width W',hint:'Full wall-to-wall width at room end',colour:'#374151',required:true},
+    {id:'m_P',label:'P',name:'Projection',hint:'How far the bay sticks out from the front wall',colour:'#0d9488',required:true},
+    {id:'m_AC',label:'A→C',name:'Diagonal A→C',hint:'Tape from left wall corner A to right inner corner C',colour:'#7c3aed',required:false},
+    {id:'m_BD',label:'B→D',name:'Diagonal B→D',hint:'Tape from left inner corner B to right wall corner D',colour:'#7c3aed',required:false},
+    {id:'m_AD_diag',label:'A→D diag',name:'Full diagonal A→D',hint:'Tape corner A to corner D across the full bay opening',colour:'#7c3aed',required:false},
+    {id:'m_BC_check',label:'B→C check',name:'Front re-measure',hint:'Re-measure B→C to confirm front width is consistent',colour:'#059669',required:false},
+  ];
+}
+
+function renderMeasGrid(){
+  const defs=getMeasDefs();
+  document.getElementById('measGrid').innerHTML=
+    '<div style="font-size:.72rem;font-weight:700;color:var(--brand-mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:4px">Required measurements</div>'+
+    defs.filter(d=>d.required).map(measRow).join('')+
+    '<div style="font-size:.72rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px">Diagonal cross-checks <span style="font-weight:400;color:var(--text3)">(optional but very helpful)</span></div>'+
+    defs.filter(d=>!d.required).map(measRow).join('');
+}
+
+function measRow(d){
+  return'<div class="mrow" id="row_'+d.id+'">'+
+    '<div class="mbadge" style="background:'+d.colour+'">'+d.label+'</div>'+
+    '<div class="minfo">'+d.name+'<small>'+d.hint+'</small></div>'+
+    '<div class="minput-wrap">'+
+      '<div class="minput-inner">'+
+        '<input class="minput" id="'+d.id+'" type="number" min="0" placeholder="—" oninput="onMeasInput()">'+
+        '<span class="munit">'+unit+'</span>'+
+      '</div>'+
+      '<div class="mhint" id="hint_'+d.id+'"></div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderSchematic(){
+  const svg=document.getElementById('schematic');
+  const VW=500,VH=240,margin=60;
+  const corners=getCorners();
+  const rawW=parseFloat(document.getElementById('m_AD')?.value)||1800;
+  const rawP=parseFloat(document.getElementById('m_P')?.value)||600;
+  const pts=corners||{A:{x:0,y:0},B:{x:bayType==='box'?rawW*.18:rawW*.22,y:rawP},C:{x:rawW-(bayType==='box'?rawW*.18:rawW*.22),y:rawP},D:{x:rawW,y:0}};
+  const allX=[pts.A.x,pts.B.x,pts.C.x,pts.D.x],allY=[pts.A.y,pts.B.y,pts.C.y,pts.D.y];
+  const minX=Math.min(...allX),maxX=Math.max(...allX),minY=Math.min(...allY),maxY=Math.max(...allY);
+  const scale=Math.min((VW-margin*2)/(maxX-minX||1),(VH-margin*2)/(maxY-minY||1));
+  const offX=(VW-(maxX-minX)*scale)/2-minX*scale,offY=(VH-(maxY-minY)*scale)/2+maxY*scale;
+  const sx=x=>x*scale+offX,sy=y=>-y*scale+offY;
+  const A={x:sx(pts.A.x),y:sy(pts.A.y)},B={x:sx(pts.B.x),y:sy(pts.B.y)},C={x:sx(pts.C.x),y:sy(pts.C.y)},D={x:sx(pts.D.x),y:sy(pts.D.y)};
+  const acc='#3a9e6a',wl='#94a3b8',dm='#64748b',dg='#a78bfa',lb='#f8fafc';
+  let h='';
+  h+='<line x1="'+(A.x-30)+'" y1="'+A.y+'" x2="'+(D.x+30)+'" y2="'+D.y+'" stroke="'+wl+'" stroke-width="1.5" stroke-dasharray="6,4" opacity=".5"/>';
+  h+='<polyline points="'+A.x+','+A.y+' '+B.x+','+B.y+' '+C.x+','+C.y+' '+D.x+','+D.y+'" fill="none" stroke="'+acc+'" stroke-width="2.5" stroke-linejoin="round"/>';
+  h+='<polygon points="'+A.x+','+A.y+' '+B.x+','+B.y+' '+C.x+','+C.y+' '+D.x+','+D.y+'" fill="'+acc+'" fill-opacity=".06"/>';
+  [{pt:A,l:'A',dx:-18,dy:10},{pt:B,l:'B',dx:-18,dy:-12},{pt:C,l:'C',dx:8,dy:-12},{pt:D,l:'D',dx:8,dy:10}].forEach(function(o){
+    h+='<circle cx="'+o.pt.x+'" cy="'+o.pt.y+'" r="5" fill="'+acc+'" stroke="#1a1f2e" stroke-width="1.5"/>';
+    h+='<text x="'+(o.pt.x+o.dx)+'" y="'+(o.pt.y+o.dy)+'" font-family="monospace" font-size="14" font-weight="700" fill="'+lb+'">'+o.l+'</text>';
+  });
+  function ml(p1,p2,v,c,o){if(!v||v==='0')return'';var mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,a=Math.atan2(p2.y-p1.y,p2.x-p1.x);return'<text x="'+(mx+Math.cos(a+Math.PI/2)*o)+'" y="'+(my+Math.sin(a+Math.PI/2)*o)+'" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="'+c+'" text-anchor="middle" dominant-baseline="middle">'+v+' '+unit+'</text>';}
+  var ab=document.getElementById('m_AB')?.value,bc=document.getElementById('m_BC')?.value,cd=document.getElementById('m_CD')?.value,ad=document.getElementById('m_AD')?.value,pp=document.getElementById('m_P')?.value;
+  h+=ml(A,B,ab,'#86efac',-14);h+=ml(B,C,bc,'#86efac',-14);h+=ml(C,D,cd,'#86efac',-14);
+  var yd=Math.max(A.y,D.y)+28;
+  h+='<line x1="'+A.x+'" y1="'+yd+'" x2="'+D.x+'" y2="'+yd+'" stroke="'+dm+'" stroke-width="1"/>';
+  h+='<line x1="'+A.x+'" y1="'+A.y+'" x2="'+A.x+'" y2="'+(yd+4)+'" stroke="'+dm+'" stroke-width="1" stroke-dasharray="3,2"/>';
+  h+='<line x1="'+D.x+'" y1="'+D.y+'" x2="'+D.x+'" y2="'+(yd+4)+'" stroke="'+dm+'" stroke-width="1" stroke-dasharray="3,2"/>';
+  if(ad)h+='<text x="'+((A.x+D.x)/2)+'" y="'+(yd+14)+'" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="'+dm+'" text-anchor="middle">W = '+ad+' '+unit+'</text>';
+  if(pp){var xr=Math.max(B.x,C.x,D.x)+22;h+='<line x1="'+xr+'" y1="'+D.y+'" x2="'+xr+'" y2="'+C.y+'" stroke="'+dm+'" stroke-width="1"/>';h+='<line x1="'+D.x+'" y1="'+D.y+'" x2="'+(xr+4)+'" y2="'+D.y+'" stroke="'+dm+'" stroke-width="1" stroke-dasharray="3,2"/>';h+='<line x1="'+C.x+'" y1="'+C.y+'" x2="'+(xr+4)+'" y2="'+C.y+'" stroke="'+dm+'" stroke-width="1" stroke-dasharray="3,2"/>';h+='<text x="'+(xr+8)+'" y="'+((D.y+C.y)/2+4)+'" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="'+dm+'">P='+pp+'</text>';}
+  var acv=document.getElementById('m_AC')?.value,bdv=document.getElementById('m_BD')?.value,adD=document.getElementById('m_AD_diag')?.value;
+  if(acv)h+='<line x1="'+A.x+'" y1="'+A.y+'" x2="'+C.x+'" y2="'+C.y+'" stroke="'+dg+'" stroke-width="1.2" stroke-dasharray="5,3" opacity=".7"/>';
+  if(bdv)h+='<line x1="'+B.x+'" y1="'+B.y+'" x2="'+D.x+'" y2="'+D.y+'" stroke="'+dg+'" stroke-width="1.2" stroke-dasharray="5,3" opacity=".7"/>';
+  if(adD)h+='<line x1="'+A.x+'" y1="'+A.y+'" x2="'+D.x+'" y2="'+D.y+'" stroke="'+dg+'" stroke-width="1.2" stroke-dasharray="5,3" opacity=".5"/>';
+  h+='<text x="'+((B.x+C.x)/2)+'" y="'+((B.y+C.y)/2+4)+'" font-family="Inter,sans-serif" font-size="10" fill="'+acc+'" text-anchor="middle" opacity=".7">FRONT</text>';
+  h+='<text x="'+((A.x+D.x)/2)+'" y="'+(A.y-10)+'" font-family="Inter,sans-serif" font-size="10" fill="'+wl+'" text-anchor="middle" opacity=".6">WALL</text>';
+  svg.innerHTML=h;
+}
+
+function onMeasInput(){
+  renderSchematic();
+  var corners=getCorners(),checks=[];
+  var ab=parseFloat(document.getElementById('m_AB')?.value)||0,bc=parseFloat(document.getElementById('m_BC')?.value)||0,cd=parseFloat(document.getElementById('m_CD')?.value)||0,W=parseFloat(document.getElementById('m_AD')?.value)||0,P=parseFloat(document.getElementById('m_P')?.value)||0;
+  var floor=unit==='mm'?20:unit==='cm'?2:0.8;
+  function tol(m,e){if(!m||!e)return'idle';var d=Math.abs(m-e),p=d/e;return(p<=0.025||d<=floor)?'ok':(p<=0.05||d<=floor*2)?'warn':'err';}
+  function setHint(id,m,e){var el=document.getElementById('hint_'+id);if(!el)return;if(!m||!e){el.textContent='';el.className='mhint';return;}var st=tol(m,e),diff=Math.round(m-e);el.className='mhint '+st;el.textContent=st==='ok'?'✓':(st==='warn'?'~':'✗')+' off '+(diff>0?'+':'')+diff+' '+unit;document.getElementById('row_'+id)?.classList.toggle('ok',st==='ok');document.getElementById('row_'+id)?.classList.toggle('warn',st==='warn');document.getElementById('row_'+id)?.classList.toggle('err',st==='err');}
+  var filled=(ab>0?1:0)+(bc>0?1:0)+(cd>0?1:0)+(W>0?1:0)+(P>0?1:0);
+  var panel=document.getElementById('sensePanel');
+  if(filled<2){panel.className='sense idle';panel.innerHTML='<div class="sense-title">ℹ️ Sense check</div>Fill in your measurements — errors will appear here as you go.';return;}
+  var tot=ab+bc+cd;
+  if(W>0&&tot>0){var r=tot/W;if(tot<W*0.95)checks.push({st:'err',icon:'✗',text:'Section total less than opening width — re-measure',detail:'A→B + B→C + C→D must exceed W.'});else if(r>2.5)checks.push({st:'err',icon:'✗',text:'Section ratio '+r.toFixed(1)+'× — unusually large',detail:'Expected 1.1–1.8×.'});else if(r>1.9)checks.push({st:'warn',icon:'~',text:'Section ratio '+r.toFixed(2)+'× — on the high side'});else checks.push({st:'ok',icon:'✓',text:'Section ratio '+r.toFixed(2)+'× ✓'});}
+  if(P>0&&W>0){var pr=P/W;if(pr>0.8)checks.push({st:'err',icon:'✗',text:'Projection '+(pr*100).toFixed(0)+'% of opening — very deep'});else if(pr>0.6)checks.push({st:'warn',icon:'~',text:'Projection '+(pr*100).toFixed(0)+'% — deeper than typical'});else checks.push({st:'ok',icon:'✓',text:'Projection '+(pr*100).toFixed(0)+'% ✓'});}
+  if(ab>0&&cd>0){var diff=Math.abs(ab-cd),avg=(ab+cd)/2,pct=(diff/avg)*100;if(pct>20)checks.push({st:'err',icon:'✗',text:'Sides differ by '+pct.toFixed(0)+'% — A→B '+Math.round(ab)+' vs C→D '+Math.round(cd),detail:'Most bays are symmetric.'});else if(pct>10)checks.push({st:'warn',icon:'~',text:'Side sections differ by '+pct.toFixed(0)+'%'});else checks.push({st:'ok',icon:'✓',text:'Left/right symmetry ✓'});}
+  if(bayType==='angled'){if(ab>0&&P>0&&ab<=P)checks.push({st:'err',icon:'✗',text:'A→B shorter than projection P',detail:'Side sections must exceed P on an angled bay.'});if(cd>0&&P>0&&cd<=P)checks.push({st:'err',icon:'✗',text:'C→D shorter than projection P',detail:'Side sections must exceed P on an angled bay.'});}
+  if(corners){
+    var ac_m=parseFloat(document.getElementById('m_AC')?.value)||0,bd_m=parseFloat(document.getElementById('m_BD')?.value)||0,ad_m=parseFloat(document.getElementById('m_AD_diag')?.value)||0;
+    setHint('m_AC',ac_m,dist2(corners.A,corners.C));setHint('m_BD',bd_m,dist2(corners.B,corners.D));setHint('m_AD_diag',ad_m,dist2(corners.A,corners.D));
+    var dOk=0,dWarn=0,dErr=0;
+    [[ac_m,dist2(corners.A,corners.C)],[bd_m,dist2(corners.B,corners.D)],[ad_m,dist2(corners.A,corners.D)]].forEach(function(pair){if(!pair[0]||!pair[1])return;var st=tol(pair[0],pair[1]);if(st==='ok')dOk++;else if(st==='warn')dWarn++;else dErr++;});
+    if(dErr>0)checks.push({st:'err',icon:'✗',text:dErr+' diagonal(s) significantly off',detail:'A large error means one measurement is wrong.'});
+    else if(dWarn>0)checks.push({st:'warn',icon:'~',text:dWarn+' diagonal(s) slightly off'});
+    else if(dOk>0)checks.push({st:'ok',icon:'✓',text:'All '+dOk+' diagonal cross-check'+(dOk>1?'s':'')+' passed ✓'});
+  }
+  var hasErr=checks.some(function(c){return c.st==='err';}),hasWarn=checks.some(function(c){return c.st==='warn';});
+  panel.className='sense '+(hasErr?'err':hasWarn?'warn':checks.length?'ok':'idle');
+  panel.innerHTML='<div class="sense-title">'+(hasErr?'⚠️ Errors found — re-measure highlighted dimensions':hasWarn?'🔍 Mostly consistent — a couple to check':checks.length?'✓ All checks passed':'')+'</div><ul class="check-list">'+checks.map(function(c){return'<li class="'+c.st+'"><span class="ci">'+c.icon+'</span><span>'+c.text+(c.detail?'<div class="check-detail">'+c.detail+'</div>':'')+'</span></li>';}).join('')+'</ul>';
+}
+
+function setBayType(type,btn){bayType=type;document.getElementById('bayTypeRow').querySelectorAll('.opt').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');renderMeasGrid();renderSchematic();}
+function setMount(type,btn){opts.mount=type;document.getElementById('mountRow').querySelectorAll('.opt').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');document.getElementById('ceilBlock').classList.toggle('show',type==='ceiling');}
+function setUnit(u){unit=u;document.querySelectorAll('.ubtn').forEach(function(b){b.classList.toggle('on',b.textContent===u);});document.querySelectorAll('.munit').forEach(function(el){el.textContent=u;});onMeasInput();}
+function selOpt(btn,key,val){btn.closest('.opt-row').querySelectorAll('.opt').forEach(function(b){b.classList.remove('sel');});btn.classList.add('sel');opts[key]=val;if(key==='ext')document.getElementById('extBlock').classList.toggle('show',val==='yes');}
+function checkCeilDepth(){var v=parseFloat(document.getElementById('ceilDepth').value)||0,w=document.getElementById('ceilDepthWarn');if(v>0&&v<50){w.style.color='var(--red)';w.textContent='⚠️ Less than 50mm — brackets may not fit. Please confirm.';}else if(v>=50&&v<70){w.style.color='var(--amber)';w.textContent='✓ Just enough — worth noting.';}else if(v>=70){w.style.color='var(--green)';w.textContent='✓ Good clearance';}else{w.textContent='';}}
+function gv(id){return(document.getElementById(id)||{}).value||'';}
+function addPhotos(input){Array.from(input.files).forEach(function(f){var r=new FileReader();r.onload=function(e){photos.push({url:e.target.result,cap:''});renderThumbs();};r.readAsDataURL(f);});input.value='';document.getElementById('photoZone').classList.remove('required-missing');document.getElementById('photoReq').style.display='none';}
+function renderThumbs(){
+  document.getElementById('thumbs').innerHTML=photos.map(function(p,i){return'<div class="thumb"><img src="'+p.url+'"><button class="del" onclick="photos.splice('+i+',1);renderThumbs()">✕</button></div>';}).join('');
+  document.getElementById('photoLabels').innerHTML=photos.length?'<div style="font-size:.71rem;color:var(--text3);margin-bottom:6px;font-style:italic">Label each photo (optional):</div>'+photos.map(function(p,i){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:22px;height:22px;border-radius:50%;background:var(--brand);color:#fff;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center">'+(i+1)+'</div><input style="flex:1;padding:5px 8px;border:1px solid var(--border2);border-radius:5px;font-size:.78rem;background:var(--surface);color:var(--text);font-family:Inter,sans-serif;outline:none" placeholder="e.g. Front view, left angle…" value="'+p.cap+'" oninput="photos['+i+'].cap=this.value"></div>';}).join(''):'';
+}
+
+function buildSummary(){
+  var date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  var colMap={'black':'Matt Black','brass':'Brass / Gold','chrome':'Chrome / Silver','white':'White'};
+  var mountMap={'wall':'Wall mounted','ceiling':'Bay ceiling mounted'};
+  var hangMap={'rings':'Rings','eyelets':'Eyelets','unsure':'Not confirmed'};
+  var cornerMap={'standard':'Standard bracket','rounded':'Rounded / curved corner','unsure':'Not confirmed'};
+  var finialMap={'ball':'Ball','spear':'Spear','disc':'Disc / flat','unsure':'Not confirmed'};
+  var wallTypeMap={'block':'Block / brick','plasterboard':'Plasterboard','insulated':'Insulated / dot & dab','unknown':'Unknown'};
+  var LE=gv('inLE'),RE=gv('inRE'),wn=gv('wallNotes');
+  var extLine=opts.ext==='yes'?'Yes — onto front wall'+(LE||RE?' (L: '+(LE||'?')+'mm / R: '+(RE||'?')+'mm)':''):opts.ext==='no'?'No — stays within bay':'Not selected';
+  var corners=getCorners();
+  function expStr(id,p1,p2){if(!corners)return'';var exp=Math.round(dist2(corners[p1],corners[p2])),m=parseFloat(gv(id))||0;if(!m)return' (expected ~'+exp+' '+unit+')';var diff=m-exp,pct=Math.abs(diff)/exp*100;return' → expected ~'+exp+' '+unit+' '+(pct<=2.5?'✓':pct<=5?'~':'✗');}
+  var ceilLines='';
+  if(opts.mount==='ceiling')ceilLines='\n  Wall below window width: '+(gv('ceilWallWidth')||'—')+' '+unit+'\n  Bracket clearance depth: '+(gv('ceilDepth')||'—')+' mm\n  Wall construction: '+(wallTypeMap[opts.wallType]||'Not selected');
+  var photoDesc=photos.length?photos.map(function(p,i){return'  Photo '+(i+1)+': '+(p.cap||'(no label)');}).join('\n'):'  None added';
+  return 'BAYSPOKE — 3-SECTION BAY WINDOW\n================================\n'+
+    'Date:    '+date+'\n'+
+    'Name:    '+gv('cName')+'\n'+
+    'Phone:   '+gv('cPhone')+'\n'+
+    'Email:   '+(gv('cEmail')||'—')+'\n'+
+    'Town:    '+(gv('cTown')||'—')+'\n'+
+    'Room:    '+(gv('cRoom')||'—')+'\n\n'+
+    'BAY TYPE: '+(bayType==='angled'?'Angled Bay':'Box Bay')+' (3 section)\n'+
+    'Units: '+unit+'\n\n'+
+    'MEASUREMENTS:\n'+
+    '  A→B  '+(bayType==='angled'?'Left side':'Left return')+':    '+(gv('m_AB')||'—')+' '+unit+'\n'+
+    '  B→C  Front section:          '+(gv('m_BC')||'—')+' '+unit+'\n'+
+    '  C→D  '+(bayType==='angled'?'Right side':'Right return')+':  '+(gv('m_CD')||'—')+' '+unit+'\n'+
+    '  A→D  Opening width (W):      '+(gv('m_AD')||'—')+' '+unit+'\n'+
+    '  P    Projection:              '+(gv('m_P')||'—')+' '+unit+'\n\n'+
+    'DIAGONAL CROSS-CHECKS:'+
+    (gv('m_AC')?'\n  A→C: '+gv('m_AC')+' '+unit+expStr('m_AC','A','C'):'')+
+    (gv('m_BD')?'\n  B→D: '+gv('m_BD')+' '+unit+expStr('m_BD','B','D'):'')+
+    (gv('m_AD_diag')?'\n  A→D (diag): '+gv('m_AD_diag')+' '+unit+expStr('m_AD_diag','A','D'):'')+
+    (!gv('m_AC')&&!gv('m_BD')&&!gv('m_AD_diag')?'\n  None entered':'')+'\n\n'+
+    'MOUNTING:\n'+
+    '  Type: '+(mountMap[opts.mount]||'Not selected')+ceilLines+'\n\n'+
+    'POLE DETAILS:\n'+
+    '  Extends onto wall:  '+extLine+(wn?'\n  Obstacles: '+wn:'')+'\n'+
+    '  Colour:             '+(colMap[opts.colour]||'Not selected')+'\n'+
+    '  Finial:             '+(finialMap[opts.finial]||'Not confirmed')+'\n'+
+    '  Hanging:            '+(hangMap[opts.hang]||'Not confirmed')+'\n'+
+    '  Corner style:       '+(cornerMap[opts.corner]||'Not confirmed')+'\n\n'+
+    'PHOTOS ('+photos.length+'):\n'+photoDesc+'\n\n'+
+    'NOTES:\n'+(gv('custNotes')||'None')+'\n'+
+    '================================\n'+
+    'Bayspoke · bayspoke@gmail.com';
+}
+
+async function submit(){
+  if(!gv('cName').trim()||!gv('cPhone').trim()){alert('Please fill in your name and phone number.');return;}
+  if(photos.length===0){document.getElementById('photoZone').classList.add('required-missing');document.getElementById('photoReq').style.display='block';document.getElementById('photoZone').scrollIntoView({behavior:'smooth',block:'center'});return;}
+  summaryCache=buildSummary();
+  document.getElementById('sendingState').style.display='block';
+  document.getElementById('successState').style.display='none';
+  document.getElementById('errorState').style.display='none';
+  document.getElementById('overlay').classList.add('open');
+  try{
+    var res=await fetch('https://api.web3forms.com/submit',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({access_key:WEB3FORMS_KEY,name:gv('cName'),phone:gv('cPhone'),email:gv('cEmail'),bay_type:(bayType==='angled'?'Angled':'Box')+' Bay',unit:unit,full_summary:summaryCache,
+        subject:'Bayspoke measure-up — '+gv('cName')+' — '+(bayType==='angled'?'Angled':'Box')+' Bay',from_name:'Bayspoke Form',replyto:gv('cEmail')||''})});
+    document.getElementById('sendingState').style.display='none';
+    if(res.ok)document.getElementById('successState').style.display='block';
+    else document.getElementById('errorState').style.display='block';
+  }catch(e){document.getElementById('sendingState').style.display='none';document.getElementById('errorState').style.display='block';}
+}
+function copySum(){navigator.clipboard.writeText(summaryCache).then(function(){var f=document.getElementById('flash')||document.getElementById('flash2');if(f){f.textContent='✓ Copied!';setTimeout(function(){f.textContent='';},2500);}});}
+function sendWA(){window.open('https://wa.me/447761239597?text='+encodeURIComponent(summaryCache),'_blank');}
+
+renderMeasGrid();
+renderSchematic();
+</script>
+</body>
+</html>
