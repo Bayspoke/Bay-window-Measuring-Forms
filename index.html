@@ -1157,12 +1157,11 @@ async function submitForm(){
           emailjs.init(EJS_PUBLIC_KEY);
           var jobHtml=buildJobSheetHtml(); // full HTML for the job sheet
           emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
-            customer_name: gv('cName'),
-            customer_phone: gv('cPhone'),
-            customer_address: (gv('cAddress')||'')+(gv('cTown')?' · '+gv('cTown'):''),
-            quote: quoteData.custom?'Custom':('£'+quoteData.total),
+            subject: 'JOB SHEET — '+gv('cName')+' — '+(quoteData.custom?'Custom':('£'+quoteData.total)),
             job_sheet_html: jobHtml,
-            subject: 'JOB SHEET — '+gv('cName')+' — '+(quoteData.custom?'Custom':('£'+quoteData.total))
+            message: jobHtml,
+            name: gv('cName'),
+            email: gv('cEmail')||'noreply@bayspoke.com'
           });
         }catch(ejsErr){console.warn('EmailJS send failed:',ejsErr);}
       }
