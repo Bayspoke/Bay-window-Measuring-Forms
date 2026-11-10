@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bayspoke — Measurement Guide &amp; Instant Quote</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{--bg:#f7f8fa;--surface:#fff;--surface2:#f0f2f7;--border:#dde1ea;--border2:#c8cdd8;--text:#1a1f2e;--text2:#4b5368;--text3:#8891a8;--brand:#1a3a2a;--brand-mid:#2d6248;--brand-light:#e8f5ee;--brand-accent:#3a9e6a;--green:#16a34a;--green-light:#dcfce7;--amber:#d97706;--amber-light:#fef3c7;--red:#dc2626;--red-light:#fee2e2;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.04);}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -435,6 +436,13 @@ hr.div{border:none;border-top:1px dashed var(--border);margin:14px 0;}
 // Config
 // ─────────────────────────────────────────────
 var WEB3FORMS_KEY='638c7c81-f811-4400-8ba2-432833e6e1e1';
+
+// ── EmailJS — job sheet auto-send to Bayspoke ──
+// Fill these three values in after creating your free account at emailjs.com
+var EJS_SERVICE_ID  = 'service_1hnjrfc';
+var EJS_TEMPLATE_ID = 'template_7ewzy0l';
+var EJS_PUBLIC_KEY  = 'XlB059UfNmVY_aoIn';
+var EJS_READY = (EJS_SERVICE_ID !== 'YOUR_SERVICE_ID');
 var photos=[];
 var opts={};
 var summaryCache='';
@@ -1141,8 +1149,26 @@ async function submitForm(){
         from_name:'Bayspoke Form',replyto:gv('cEmail')||''
       })});
     document.getElementById('sendingState').style.display='none';
-    if(res.ok)document.getElementById('successState').style.display='block';
-    else document.getElementById('errorState').style.display='block';
+    if(res.ok){
+      document.getElementById('successState').style.display='block';
+      // ── Auto-send job sheet PDF to Bayspoke via EmailJS ──
+      if(EJS_READY){
+        try{
+          emailjs.init(EJS_PUBLIC_KEY);
+          var jobHtml=buildJobSheetHtml(); // full HTML for the job sheet
+          emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+            customer_name: gv('cName'),
+            customer_phone: gv('cPhone'),
+            customer_address: (gv('cAddress')||'')+(gv('cTown')?' · '+gv('cTown'):''),
+            quote: quoteData.custom?'Custom':('£'+quoteData.total),
+            job_sheet_html: jobHtml,
+            subject: 'JOB SHEET — '+gv('cName')+' — '+(quoteData.custom?'Custom':('£'+quoteData.total))
+          });
+        }catch(ejsErr){console.warn('EmailJS send failed:',ejsErr);}
+      }
+    } else {
+      document.getElementById('errorState').style.display='block';
+    }
   }catch(e){document.getElementById('sendingState').style.display='none';document.getElementById('errorState').style.display='block';}
 }
 
@@ -1150,9 +1176,13 @@ function copySum(){navigator.clipboard.writeText(summaryCache).then(function(){v
 function sendWA(){window.open('https://wa.me/447761239597?text='+encodeURIComponent(summaryCache),'_blank');}
 
 // ─────────────────────────────────────────────
-// Print job sheet — snapshot then open
+// Job sheet HTML builder (used by print button AND EmailJS auto-send)
 // ─────────────────────────────────────────────
-function printJobSheet(){
+function buildJobSheetHtml(){
+  return _buildJobSheetInner();
+}
+
+function _buildJobSheetInner(){
   var date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   // Snapshot
   var snap={
@@ -1310,6 +1340,11 @@ function printJobSheet(){
   '<div class="footer"><div>Bayspoke · bayspoke@gmail.com</div><div>'+date+'</div><div>PRODUCTION COPY</div></div>'+
   '</body></html>';
 
+  return html;
+}
+
+function printJobSheet(){
+  var html=_buildJobSheetInner();
   var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},600);
 }
 
